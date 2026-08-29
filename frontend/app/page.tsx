@@ -1,33 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useChat } from "@ai-sdk/react";
 import ChatMessage from "./components/ChatMessage";
 import Composer from "./components/Composer";
 import EmptyState from "./components/EmptyState";
-import { type Message, mockRespond, newId } from "./lib/chat";
+import type { Message } from "./lib/chat";
 
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [thinking, setThinking] = useState(false);
+  const { messages, sendMessage, status, error } = useChat();
   const streamRef = useRef<HTMLDivElement>(null);
+
+  const thinking = status === "submitted" || status === "streaming";
 
   useEffect(() => {
     streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
   function send(text: string) {
-    const userMsg: Message = { id: newId(), role: "user", text };
-    setMessages((prev) => [...prev, userMsg]);
-    setThinking(true);
-
-    // Local stand-in. Swap for a POST to /api/chat (Groq + MCP tools).
-    setTimeout(() => {
-      setMessages((prev) => [...prev, mockRespond(text)]);
-      setThinking(false);
-    }, 650);
+    sendMessage({ text });
   }
 
-  const hasMessages = messages.length > 0;
+  // Flatten an AI SDK UIMessage's text parts into the ChatMessage view model.
+  function toView(m: (typeof messages)[number]): Message {
+    const text = m.parts
+      .filter((p) => p.type === "text")
+      .map((p) => ("text" in p ? p.text : ""))
+      .join("");
+    return { id: m.id, role: m.role === "user" ? "user" : "assistant", text };
+  }
+
+  const views = messages.map(toView).filter((v) => v.text.trim().length > 0);
+  const hasMessages = views.length > 0;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -57,7 +61,7 @@ export default function Home() {
           <EmptyState onPick={send} />
         ) : (
           <div className="flex flex-col gap-5 py-6">
-            {messages.map((m) => (
+            {views.map((m) => (
               <div key={m.id} className="animate-rise">
                 <ChatMessage message={m} />
               </div>
@@ -77,6 +81,13 @@ export default function Home() {
                   <span className="dot size-1.5 rounded-full bg-ink-faint" />
                 </span>
               </div>
+            )}
+
+            {error && (
+              <p className="rounded-xl border border-accent-wash bg-accent-wash px-4 py-3 text-sm text-accent-strong">
+                Something went wrong reaching the kitchen. Make sure the MCP server
+                and your Groq key are set, then try again.
+              </p>
             )}
           </div>
         )}
