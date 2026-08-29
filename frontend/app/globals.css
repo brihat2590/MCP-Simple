@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* Hallmark · app-shell: restaurant ordering chat · genre: playful/warm
+ * theme: Hearth (custom · cream paper · terracotta accent · sage support)
+ * type: Fraunces (display, roman) + Geist Sans (body) + Geist Mono (prices)
+ * states: composer/send/chips ship default·hover·focus·active·disabled·loading
+ * contrast: pass · motion: motion-cut (CSS only, reduced-motion honoured)
+ * pre-emit critique: P5 H4 E5 S4 R5 V4
+ */
+
+:root {
+  /* Paper — warm creams, light band */
+  --paper: oklch(0.985 0.008 85);
+  --paper-2: oklch(0.965 0.012 82);
+  --paper-3: oklch(0.925 0.016 78);
+
+  /* Ink — warm charcoals */
+  --ink: oklch(0.24 0.02 55);
+  --ink-soft: oklch(0.44 0.02 58);
+  --ink-faint: oklch(0.62 0.015 60);
+
+  /* Accent — appetising terracotta */
+  --accent: oklch(0.55 0.18 33);
+  --accent-strong: oklch(0.47 0.17 32);
+  --accent-hover: oklch(0.42 0.16 31);
+  --accent-wash: oklch(0.95 0.03 45);
+
+  /* Support — fresh sage/herb */
+  --support: oklch(0.5 0.09 150);
+  --support-wash: oklch(0.95 0.02 150);
+
+  --focus: oklch(0.55 0.15 250);
+  --line: oklch(0.9 0.014 78);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-wash: var(--accent-wash);
+  --color-support: var(--support);
+  --color-support-wash: var(--support-wash);
+  --color-focus: var(--focus);
+  --color-line: var(--line);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display headings are always roman — no italic headers. */
+.font-display {
+  font-style: normal;
+  letter-spacing: -0.015em;
+}
+
+/* Message entrance — subtle, honours reduced-motion. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Typing dots for the assistant "thinking" state. */
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.dot {
+  animation: blink 1.4s infinite both;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Custom scrollbar for the message stream. */
+.stream {
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-3) transparent;
+}
+.stream::-webkit-scrollbar {
+  width: 10px;
+}
+.stream::-webkit-scrollbar-thumb {
+  background: var(--paper-3);
+  border-radius: 999px;
+  border: 3px solid var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .dot {
+    animation: none;
+  }
+}
