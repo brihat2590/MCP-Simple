@@ -7,7 +7,7 @@ from contextlib import contextmanager
 # Use PostgreSQL from env var, fall back to SQLite for local dev.
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://neondb_owner:npg_1VfPrIt2idkY@ep-sparkling-scene-ae44qd7r-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",
+    "postgresql://neondb_owner:npg_1VfPrIt2idkY@ep-sparkling-scene-ae44qd7r-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",  # noqa: E501
 )
 
 engine = create_engine(
