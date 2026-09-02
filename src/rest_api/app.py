@@ -10,13 +10,23 @@ app = FastAPI(title="Weather REST API")
 OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
 
+@app.get("/")
+def read_root():
+    return {"status": "ok", "service": "weather-rest-api"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/api/weather")
 def get_weather(city: str = Query(..., description="City name, e.g. 'London'")):
     """Fetch current weather for a city from OpenWeather.
 
     Callable from Postman:  GET http://127.0.0.1:9000/api/weather?city=London
     """
-    api_key = "a0ad9e54f1d4c49de05e5161ef66ad00"
+    api_key = os.getenv("OPENWEATHER_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="OPENWEATHER_API_KEY is not set")
 
