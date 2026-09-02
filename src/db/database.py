@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from contextlib import contextmanager
 
@@ -26,6 +26,13 @@ def get_session():
     session = SessionLocal()
     try:
         yield session
+        # Writes made through this session (adds, flushes) only stick around
+        # if we commit — without this, every place_order() silently rolled
+        # back on session.close() and orders never persisted.
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     finally:
         session.close()
 
@@ -34,3 +41,16 @@ def init_db():
     # Import models here so Base "knows" about them before creating tables.
     from src.models import menu_item, order  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    _run_migrations()
+
+
+def _run_migrations():
+    """Lightweight in-place migrations for columns added after the db
+    file already existed (SQLite has no ALTER-based auto-migration)."""
+    inspector = inspect(engine)
+    if "menu_items" not in inspector.get_table_names():
+        return
+    columns = {col["name"] for col in inspector.get_columns("menu_items")}
+    if "image_url" not in columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE menu_items ADD COLUMN image_url VARCHAR(500)"))

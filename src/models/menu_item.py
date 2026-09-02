@@ -11,3 +11,4 @@ class MenuItem(Base):
     price = Column(Float, nullable=False)
     category = Column(String(50))          # e.g. "pizza", "drink"
     available = Column(Boolean, default=True)
+    image_url = Column(String(500))        # photo shown on the menu card

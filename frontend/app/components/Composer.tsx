@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { SendIcon } from "./Icons";
 
 type ComposerProps = {
   onSend: (text: string) => void;
@@ -35,7 +36,7 @@ export default function Composer({ onSend, disabled = false }: ComposerProps) {
   }
 
   return (
-    <div className="flex items-end gap-2 rounded-2xl border border-line bg-paper p-2 shadow-sm focus-within:border-accent">
+    <div className="flex items-end gap-2 rounded-3xl border border-line bg-paper p-2 shadow-food transition focus-within:border-accent focus-within:shadow-food-hover">
       <textarea
         ref={textareaRef}
         value={value}
@@ -45,7 +46,7 @@ export default function Composer({ onSend, disabled = false }: ComposerProps) {
         rows={1}
         placeholder={disabled ? "Hearth is replying…" : "Ask for the menu, or order something…"}
         aria-label="Message the Hearth host"
-        className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent px-2 py-1.5 text-ink placeholder:text-ink-faint focus:outline-none disabled:opacity-60"
+        className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent px-3 py-2 text-ink placeholder:text-ink-faint focus:outline-none disabled:opacity-60"
       />
       <button
         type="button"
@@ -53,10 +54,10 @@ export default function Composer({ onSend, disabled = false }: ComposerProps) {
         disabled={!canSend}
         aria-label="Send message"
         className={[
-          "grid size-9 shrink-0 place-items-center rounded-xl transition",
+          "group/send grid size-10 shrink-0 place-items-center rounded-full transition-all duration-200",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
           canSend
-            ? "bg-accent-strong text-paper hover:bg-accent-hover active:translate-y-px"
+            ? "bg-accent-strong text-paper shadow-food hover:bg-accent-hover hover:shadow-food-hover active:translate-y-px"
             : "cursor-not-allowed bg-paper-3 text-ink-faint",
         ].join(" ")}
       >
@@ -67,14 +68,7 @@ export default function Composer({ onSend, disabled = false }: ComposerProps) {
             <span className="dot size-1.5 rounded-full bg-current" />
           </span>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M4 12L20 4L13 20L11 13L4 12Z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <SendIcon size={18} className="transition-transform duration-200 group-hover/send:translate-x-0.5" />
         )}
       </button>
     </div>

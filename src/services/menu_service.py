@@ -10,6 +10,7 @@ def _to_dict(item: MenuItem) -> dict:
         "price": item.price,
         "category": item.category,
         "available": item.available,
+        "image_url": item.image_url,
     }
 
 

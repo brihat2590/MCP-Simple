@@ -1,3 +1,7 @@
+import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { ReceiptIcon } from "./Icons";
 import type { Message, MenuItem, OrderCard } from "../lib/chat";
 
 function price(n: number): string {
@@ -6,22 +10,41 @@ function price(n: number): string {
 
 function MenuList({ items }: { items: MenuItem[] }) {
   return (
-    <ul className="mt-3 grid gap-2">
+    <ul className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
       {items.map((item) => (
         <li
           key={item.id}
-          className="flex items-start justify-between gap-4 rounded-xl border border-line bg-paper px-4 py-3"
+          className="group overflow-hidden rounded-2xl border border-line bg-paper shadow-food transition duration-300 hover:-translate-y-1 hover:shadow-food-hover"
         >
-          <div className="min-w-0">
-            <p className="font-medium text-ink">{item.name}</p>
-            <p className="text-sm text-ink-soft">{item.description}</p>
-            <span className="mt-1 inline-block rounded-full bg-support-wash px-2 py-0.5 text-xs font-medium text-support">
-              {item.category}
-            </span>
+          {item.imageUrl && (
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper-2">
+              <Image
+                src={item.imageUrl}
+                alt={item.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 320px"
+                className="object-cover transition duration-500 ease-out group-hover:scale-105"
+              />
+              <span className="absolute left-2.5 top-2.5 rounded-full bg-paper/95 px-2.5 py-1 text-xs font-semibold capitalize text-accent-strong shadow-sm">
+                {item.category}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+            <div className="min-w-0">
+              <p className="font-display text-base font-semibold text-ink">{item.name}</p>
+              <p className="truncate text-sm text-ink-soft">{item.description}</p>
+              <span className="mt-1 inline-block font-mono text-sm font-semibold text-accent-strong">
+                {price(item.price)}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="shrink-0 rounded-full border-2 border-accent-strong bg-paper px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-accent-strong transition hover:bg-accent-strong hover:text-paper active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              Add
+            </button>
           </div>
-          <span className="shrink-0 font-mono text-sm font-medium text-ink">
-            {price(item.price)}
-          </span>
         </li>
       ))}
     </ul>
@@ -30,10 +53,13 @@ function MenuList({ items }: { items: MenuItem[] }) {
 
 function OrderReceipt({ order }: { order: OrderCard }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-accent-wash bg-accent-wash">
+    <div className="mt-3 animate-rise overflow-hidden rounded-2xl border border-accent-wash bg-accent-wash shadow-food transition duration-300">
       <div className="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
-        <span className="font-display text-lg text-ink">Order #{order.orderId}</span>
-        <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-medium capitalize text-accent-strong">
+        <span className="flex items-center gap-2 font-display text-lg font-bold text-ink">
+          <ReceiptIcon size={17} className="text-accent-strong" />
+          Order #{order.orderId}
+        </span>
+        <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-accent-strong">
           {order.status}
         </span>
       </div>
@@ -63,7 +89,7 @@ export default function ChatMessage({ message }: { message: Message }) {
       {!isUser && (
         <div
           aria-hidden
-          className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-accent-strong font-display text-sm text-paper"
+          className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-accent-strong font-display text-sm font-bold text-paper"
         >
           H
         </div>
@@ -77,7 +103,13 @@ export default function ChatMessage({ message }: { message: Message }) {
               : "rounded-2xl rounded-bl-sm border border-line bg-paper-2 px-4 py-2.5 text-ink"
           }
         >
-          <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
+          {isUser ? (
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
+          ) : (
+            <div className="markdown break-words leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+            </div>
+          )}
         </div>
 
         {message.menu && <MenuList items={message.menu} />}

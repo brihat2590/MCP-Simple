@@ -7,6 +7,28 @@ const MCP_URL = process.env.MCP_SERVER_URL ?? "http://127.0.0.1:8000/mcp";
 // Connects to the Python MCP server and exposes each of its tools as an
 // AI SDK tool the Groq model can call. `dynamicTool` is used because the
 // tool schemas are discovered at runtime, not known at compile time.
+// Normalizes a tool call's result to a plain JS value: prefers the
+// structured JSON payload, then falls back to parsing the JSON text out of
+// the raw MCP content blocks (some tools — e.g. those returning a bare
+// `dict` — don't get an output schema, so they only carry unstructured
+// content even though the value itself is JSON).
+function normalizeToolResult(res: Awaited<ReturnType<Client["callTool"]>>): unknown {
+  const structured = res.structuredContent as { result?: unknown } | undefined;
+  if (structured && typeof structured === "object") {
+    return "result" in structured ? structured.result : structured;
+  }
+  const content = res.content as Array<{ type: string; text?: string }> | undefined;
+  const text = content?.find((c) => c.type === "text")?.text;
+  if (text) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
+  return content;
+}
+
 export async function loadMcpTools(): Promise<{
   tools: ToolSet;
   close: () => Promise<void>;
@@ -26,10 +48,11 @@ export async function loadMcpTools(): Promise<{
           name: t.name,
           arguments: (args ?? {}) as Record<string, unknown>,
         });
-        return res.content;
+        return normalizeToolResult(res);
       },
     });
   }
 
   return { tools, close: () => client.close() };
 }
+

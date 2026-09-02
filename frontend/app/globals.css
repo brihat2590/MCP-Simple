@@ -1,36 +1,44 @@
 @import "tailwindcss";
 
-/* Hallmark · app-shell: restaurant ordering chat · genre: playful/warm
- * theme: Hearth (custom · cream paper · terracotta accent · sage support)
- * type: Fraunces (display, roman) + Geist Sans (body) + Geist Mono (prices)
- * states: composer/send/chips ship default·hover·focus·active·disabled·loading
+/* Hallmark · app-shell: restaurant ordering chat · genre: playful
+ * theme: custom (vibe: "Zomato/Swiggy food-delivery energy" · anchor: crimson)
+ * paper oklch(0.99 0.007 55) · accent oklch(0.5 0.211 25) warm · display-style: rounded-sans-heavy
+ * type: Baloo 2 (display, rounded, roman) + Geist Sans (body) + Geist Mono (prices)
+ * states: composer/send/chips/orders-panel/menu-add ship default·hover·focus·active·disabled·loading
  * contrast: pass · motion: motion-cut (CSS only, reduced-motion honoured)
- * pre-emit critique: P5 H4 E5 S4 R5 V4
+ * pre-emit critique: P5 H4 E5 S5 R4 V5
+ * redesign: differs from previous (Hearth/terracotta/Fraunces-serif) on display style
+ *   (rounded-sans vs high-contrast-serif) — accent stays warm cluster by user request.
  */
 
 :root {
-  /* Paper — warm creams, light band */
-  --paper: oklch(0.985 0.008 85);
-  --paper-2: oklch(0.965 0.012 82);
-  --paper-3: oklch(0.925 0.016 78);
+  color-scheme: light;
+  /* Paper — bright warm white, light band */
+  --paper: oklch(0.99 0.007 55);
+  --paper-2: oklch(0.97 0.013 45);
+  --paper-3: oklch(0.935 0.02 40);
 
-  /* Ink — warm charcoals */
-  --ink: oklch(0.24 0.02 55);
-  --ink-soft: oklch(0.44 0.02 58);
-  --ink-faint: oklch(0.62 0.015 60);
+  /* Ink — near-black warm charcoal */
+  --ink: oklch(0.22 0.018 30);
+  --ink-soft: oklch(0.42 0.018 32);
+  --ink-faint: oklch(0.6 0.014 35);
 
-  /* Accent — appetising terracotta */
-  --accent: oklch(0.55 0.18 33);
-  --accent-strong: oklch(0.47 0.17 32);
-  --accent-hover: oklch(0.42 0.16 31);
-  --accent-wash: oklch(0.95 0.03 45);
+  /* Accent — Zomato-style deep crimson */
+  --accent: oklch(0.5 0.211 25);
+  --accent-strong: oklch(0.42 0.198 24);
+  --accent-hover: oklch(0.36 0.185 23);
+  --accent-wash: oklch(0.95 0.045 30);
 
-  /* Support — fresh sage/herb */
-  --support: oklch(0.5 0.09 150);
-  --support-wash: oklch(0.95 0.02 150);
+  /* Support — fresh herb green (freshness / "open" signals) */
+  --support: oklch(0.56 0.15 148);
+  --support-wash: oklch(0.95 0.035 148);
+
+  /* Gold — ratings / bestseller accents */
+  --gold: oklch(0.78 0.15 85);
+  --gold-wash: oklch(0.96 0.04 85);
 
   --focus: oklch(0.55 0.15 250);
-  --line: oklch(0.9 0.014 78);
+  --line: oklch(0.91 0.018 40);
 }
 
 @theme inline {
@@ -46,16 +54,19 @@
   --color-accent-wash: var(--accent-wash);
   --color-support: var(--support);
   --color-support-wash: var(--support-wash);
+  --color-gold: var(--gold);
+  --color-gold-wash: var(--gold-wash);
   --color-focus: var(--focus);
   --color-line: var(--line);
 
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-baloo);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 html {
   overflow-x: clip;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -69,7 +80,20 @@ body {
 /* Display headings are always roman — no italic headers. */
 .font-display {
   font-style: normal;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
+}
+
+/* Elevated "food card" shadow — a touch bolder than a default subtle border,
+ * matching the appetite-forward card language of food-delivery apps. */
+.shadow-food {
+  box-shadow:
+    0 1px 2px oklch(0.22 0.018 30 / 0.06),
+    0 10px 24px -12px oklch(0.5 0.211 25 / 0.28);
+}
+.shadow-food-hover:hover {
+  box-shadow:
+    0 2px 4px oklch(0.22 0.018 30 / 0.08),
+    0 18px 32px -14px oklch(0.5 0.211 25 / 0.38);
 }
 
 /* Message entrance — subtle, honours reduced-motion. */
@@ -110,6 +134,129 @@ body {
   animation-delay: 0.4s;
 }
 
+/* ChatGPT-style shimmer skeleton for the "thinking" state. A pale base with a
+ * light sweep travelling left→right. */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--paper-3) 0%,
+    var(--paper-3) 25%,
+    var(--paper) 50%,
+    var(--paper-3) 75%,
+    var(--paper-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Markdown rendering inside assistant bubbles. Keeps spacing tight so short
+ * replies don't balloon, while still supporting lists, code, tables, etc. */
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown p {
+  margin: 0.5rem 0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.9rem 0 0.4rem;
+}
+.markdown h1 {
+  font-size: 1.25rem;
+}
+.markdown h2 {
+  font-size: 1.12rem;
+}
+.markdown h3 {
+  font-size: 1rem;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.35rem;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.2rem 0;
+}
+.markdown a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown strong {
+  font-weight: 700;
+}
+.markdown code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.86em;
+  background: var(--paper-3);
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+}
+.markdown pre {
+  margin: 0.6rem 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.82rem;
+}
+.markdown blockquote {
+  margin: 0.6rem 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--accent-wash);
+  color: var(--ink-soft);
+}
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.9em;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+.markdown th {
+  background: var(--paper-3);
+  font-weight: 600;
+}
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 0.9rem 0;
+}
+
 /* Custom scrollbar for the message stream. */
 .stream {
   scrollbar-width: thin;
@@ -125,8 +272,14 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .animate-rise,
   .dot {
+    animation: none;
+  }
+  .shimmer {
     animation: none;
   }
 }
