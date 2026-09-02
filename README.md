@@ -24,8 +24,13 @@ Useful endpoints after deployment:
 ```text
 GET /
 GET /health
+GET /api/health
 GET /api/weather?city=London
+POST /mcp
 ```
+
+`/mcp` is the MCP streamable HTTP endpoint. The health endpoints are normal
+JSON endpoints, so use those for Vercel deployment checks.
 
 ## Local REST API
 

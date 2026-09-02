@@ -1,6 +1,3 @@
-import os
-
-import httpx
 from mcp.server import MCPServer
 
 from src.services.menu_service import get_menu as _get_menu
@@ -10,14 +7,9 @@ from src.services.order_service import (
     list_orders as _list_orders,
     list_pending_orders as _list_pending_orders,
 )
+from src.services.weather_service import get_weather as _get_weather
 
-# The server instance. "restaurant" is its name; the LLM sees this.
-mcp=MCPServer("restaurant")
-
-# Base URL of the standalone Weather REST API (src/rest_api/app.py). The MCP
-# tool below does NOT talk to OpenWeather directly — it calls this REST
-# endpoint, demonstrating how to expose an existing REST API through MCP.
-WEATHER_API_URL = os.getenv("WEATHER_API_URL", "http://127.0.0.1:9000")
+mcp = MCPServer("restaurant")
 
 
 @mcp.tool()
@@ -72,7 +64,7 @@ def list_orders() -> list[dict]:
 
 @mcp.tool()
 def list_pending_orders() -> list[dict]:
-    """List every order the kitchen is stilltake  working on (not yet "ready").
+    """List every order the kitchen is still working on (not yet "ready").
 
     Each entry has customer_name, the live status ("pending" or "preparing"),
     eta_seconds (time until it is ready), total, and items — there is no order
@@ -88,29 +80,11 @@ def list_pending_orders() -> list[dict]:
 def get_weather(city: str) -> dict:
     """Get the current weather for a city.
 
-    This tool is a thin wrapper over an existing REST API: it calls
-    GET /api/weather on the Weather REST service, which in turn talks to
-    OpenWeather. Use it when the customer asks about the weather.
-
     Args:
         city: City name, e.g. "London" or "Kathmandu".
     """
-    try:
-        resp = httpx.get(
-            f"{WEATHER_API_URL}/api/weather",
-            params={"city": city},
-            timeout=10,
-        )
-    except httpx.RequestError as exc:
-        return {"error": f"Weather service unreachable: {exc}"}
-
-    if resp.status_code != 200:
-        detail = resp.json().get("detail", "unknown error") if resp.content else "unknown error"
-        return {"error": f"Weather lookup failed: {detail}"}
-
-    return resp.json()
+    return _get_weather(city)
 
 
 if __name__ == "__main__":
-    # Run over HTTP so the Next.js AI SDK can connect by URL.
     mcp.run(transport="streamable-http")
