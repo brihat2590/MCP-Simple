@@ -16,8 +16,9 @@ def read_root():
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "weather-rest-api"}
 
 
 @app.get("/api/weather")
